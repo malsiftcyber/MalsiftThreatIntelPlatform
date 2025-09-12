@@ -1,0 +1,167 @@
+version: '3.8'
+
+services:
+  # Nginx reverse proxy with SSL
+  nginx:
+    image: nginx:alpine
+    container_name: malsift-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - certbot-etc:/etc/letsencrypt
+      - certbot-var:/var/lib/letsencrypt
+    depends_on:
+      - backend
+      - frontend
+    networks:
+      - malsift-network
+    restart: unless-stopped
+
+  # Certbot for Let's Encrypt certificates
+  certbot:
+    image: certbot/certbot
+    container_name: malsift-certbot
+    volumes:
+      - certbot-etc:/etc/letsencrypt
+      - certbot-var:/var/lib/letsencrypt
+      - ./nginx/ssl:/etc/nginx/ssl
+    command: certonly --webroot --webroot-path=/var/www/html --email your-email@domain.com --agree-tos --no-eff-email -d your-domain.com
+    depends_on:
+      - nginx
+    networks:
+      - malsift-network
+
+  # Backend service (existing)
+  backend:
+    build: ./backend
+    container_name: malsift-backend
+    environment:
+      - DATABASE_URL=postgresql://malsift_user:${DB_PASSWORD}@postgres:5432/malsift
+      - REDIS_URL=redis://redis:6379
+      - SECRET_KEY=${SECRET_KEY}
+      - ACCESS_TOKEN_EXPIRE_MINUTES=${ACCESS_TOKEN_EXPIRE_MINUTES}
+      - REFRESH_TOKEN_EXPIRE_DAYS=${REFRESH_TOKEN_EXPIRE_DAYS}
+      - VIRUSTOTAL_API_KEY=${VIRUSTOTAL_API_KEY}
+      - ALIENVAULT_API_KEY=${ALIENVAULT_API_KEY}
+      - THREATFOX_API_KEY=${THREATFOX_API_KEY}
+      - AZURE_AD_TENANT_ID=${AZURE_AD_TENANT_ID}
+      - AZURE_AD_CLIENT_ID=${AZURE_AD_CLIENT_ID}
+      - AZURE_AD_CLIENT_SECRET=${AZURE_AD_CLIENT_SECRET}
+      - AZURE_AD_REDIRECT_URI=${AZURE_AD_REDIRECT_URI}
+    volumes:
+      - ./backend:/app
+      - ./custom_parsers:/app/custom_parsers
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - malsift-network
+    restart: unless-stopped
+
+  # Frontend service (existing)
+  frontend:
+    build: ./frontend
+    container_name: malsift-frontend
+    environment:
+      - REACT_APP_API_URL=${REACT_APP_API_URL:-https://your-domain.com/api}
+      - REACT_APP_AUTH_URL=${REACT_APP_AUTH_URL:-https://your-domain.com/auth}
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    networks:
+      - malsift-network
+    restart: unless-stopped
+
+  # PostgreSQL (existing)
+  postgres:
+    image: postgres:15-alpine
+    container_name: malsift-postgres
+    environment:
+      - POSTGRES_DB=malsift
+      - POSTGRES_USER=malsift_user
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - malsift-network
+    restart: unless-stopped
+
+  # Redis (existing)
+  redis:
+    image: redis:7-alpine
+    container_name: malsift-redis
+    volumes:
+      - redis_data:/data
+    networks:
+      - malsift-network
+    restart: unless-stopped
+
+  # Celery worker (existing)
+  celery:
+    build: ./backend
+    container_name: malsift-celery
+    command: celery -A app.core.celery worker --loglevel=info
+    environment:
+      - DATABASE_URL=postgresql://malsift_user:${DB_PASSWORD}@postgres:5432/malsift
+      - REDIS_URL=redis://redis:6379
+      - SECRET_KEY=${SECRET_KEY}
+    volumes:
+      - ./backend:/app
+      - ./custom_parsers:/app/custom_parsers
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - malsift-network
+    restart: unless-stopped
+
+  # Prometheus (existing)
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: malsift-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+    networks:
+      - malsift-network
+    restart: unless-stopped
+
+  # Grafana (existing)
+  grafana:
+    image: grafana/grafana:latest
+    container_name: malsift-grafana
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+    networks:
+      - malsift-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:
+  prometheus_data:
+  grafana_data:
+  certbot-etc:
+  certbot-var:
+
+networks:
+  malsift-network:
+    driver: bridge

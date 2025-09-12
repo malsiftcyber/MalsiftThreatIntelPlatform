@@ -1,0 +1,44 @@
+<svg width="200" height="80" viewBox="0 0 200 80" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="200" height="80" fill="black"/>
+  
+  <!-- Hooded Figure -->
+  <g transform="translate(20, 15)">
+    <!-- Hood -->
+    <path d="M15 25 Q15 15 25 15 Q35 15 35 25 L35 35 Q35 40 30 40 L20 40 Q15 40 15 35 Z" 
+          fill="#2a2a2a" stroke="#1a1a1a" stroke-width="1"/>
+    
+    <!-- Face shadow -->
+    <ellipse cx="25" cy="30" rx="8" ry="6" fill="#1a1a1a"/>
+    
+    <!-- Red glowing eyes -->
+    <circle cx="22" cy="28" r="2" fill="#ff0000">
+      <animate attributeName="opacity" values="0.7;1;0.7" dur="2s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="28" cy="28" r="2" fill="#ff0000">
+      <animate attributeName="opacity" values="0.7;1;0.7" dur="2s" repeatCount="indefinite"/>
+    </circle>
+    
+    <!-- Network/Molecular Structure -->
+    <g transform="translate(25, 35)">
+      <!-- Central red circle -->
+      <circle cx="0" cy="0" r="3" fill="#ff0000"/>
+      
+      <!-- Connection lines -->
+      <line x1="0" y1="0" x2="-8" y2="-8" stroke="white" stroke-width="1.5"/>
+      <line x1="0" y1="0" x2="8" y2="-8" stroke="white" stroke-width="1.5"/>
+      <line x1="0" y1="0" x2="0" y2="-12" stroke="white" stroke-width="1.5"/>
+      
+      <!-- Connected circles -->
+      <circle cx="-8" cy="-8" r="1.5" fill="none" stroke="white" stroke-width="1"/>
+      <circle cx="8" cy="-8" r="1.5" fill="none" stroke="white" stroke-width="1"/>
+      <circle cx="0" cy="-12" r="1.5" fill="none" stroke="white" stroke-width="1"/>
+    </g>
+  </g>
+  
+  <!-- MALSIFT Text -->
+  <text x="70" y="45" font-family="Georgia, serif" font-size="24" font-weight="bold" 
+        fill="#2a4a6a" text-anchor="start">
+    MALSIFT
+  </text>
+</svg>

@@ -1,0 +1,118 @@
+site_name: Malsift Documentation
+site_description: Comprehensive documentation for Malsift - Cyber Threat Intelligence Aggregation Platform
+site_author: Malsift Team
+site_url: https://rebaker501.github.io/malsift/
+
+repo_name: rebaker501/malsift
+repo_url: https://github.com/rebaker501/malsift
+edit_uri: edit/main/docs/
+
+theme:
+  name: material
+  palette:
+    primary: blue
+    accent: red
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - search.highlight
+    - search.share
+  logo: assets/logo-text.svg
+  favicon: assets/favicon.svg
+
+plugins:
+  - search
+  - git-revision-date-localized:
+      enable_creation_date: true
+  - minify:
+      minify_html: true
+
+markdown_extensions:
+  - admonition
+  - codehilite
+  - footnotes
+  - meta
+  - pymdownx.arithmatex
+  - pymdownx.betterem
+  - pymdownx.caret
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_index: !!python/name:materialx.emoji.twemoji
+      emoji_generator: !!python/name:materialx.emoji.to_svg
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.keys
+  - pymdownx.magiclink
+  - pymdownx.mark
+  - pymdownx.smartsymbols
+  - pymdownx.snippets:
+      auto_append:
+        - includes/mkdocs.md
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.tilde
+  - toc:
+      permalink: true
+
+nav:
+  - Home: index.md
+  - Getting Started:
+    - Installation: installation.md
+    - Quick Start: quick-start.md
+    - Configuration: configuration.md
+  - User Guide:
+    - Dashboard: user-guide/dashboard.md
+    - Indicators: user-guide/indicators.md
+    - Feeds: user-guide/feeds.md
+    - Sources: user-guide/sources.md
+    - Campaigns: user-guide/campaigns.md
+    - Dark Web: user-guide/darkweb.md
+    - Exclusions: user-guide/exclusions.md
+    - Jobs: user-guide/jobs.md
+  - Authentication:
+    - Overview: auth/overview.md
+    - Internal Login: auth/internal-login.md
+    - Azure AD: auth/azure-ad.md
+    - Multi-Factor Authentication: auth/mfa.md
+  - API Reference:
+    - Overview: api/overview.md
+    - Authentication: api/authentication.md
+    - Indicators: api/indicators.md
+    - Feeds: api/feeds.md
+    - Sources: api/sources.md
+    - Campaigns: api/campaigns.md
+    - Dark Web: api/darkweb.md
+    - Exclusions: api/exclusions.md
+    - Jobs: api/jobs.md
+    - ML Scoring: api/ml-scoring.md
+    - Custom Parsers: api/custom-parsers.md
+  - Advanced Features:
+    - Machine Learning: advanced/ml.md
+    - Custom Feed Parsers: advanced/custom-parsers.md
+    - Dark Web Monitoring: advanced/darkweb.md
+    - Exclusion Management: advanced/exclusions.md
+  - Development:
+    - Architecture: development/architecture.md
+    - Contributing: development/contributing.md
+    - API Development: development/api.md
+    - Frontend Development: development/frontend.md
+  - Deployment:
+    - Docker: deployment/docker.md
+    - AWS: deployment/aws.md
+    - Monitoring: deployment/monitoring.md
+  - Troubleshooting:
+    - Common Issues: troubleshooting/common-issues.md
+    - Logs: troubleshooting/logs.md
+    - Performance: troubleshooting/performance.md

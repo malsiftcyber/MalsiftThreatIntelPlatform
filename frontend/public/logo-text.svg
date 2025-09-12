@@ -1,0 +1,10 @@
+<svg width="120" height="40" viewBox="0 0 120 40" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="120" height="40" fill="black"/>
+  
+  <!-- MALSIFT Text -->
+  <text x="10" y="25" font-family="Georgia, serif" font-size="18" font-weight="bold" 
+        fill="#2a4a6a" text-anchor="start">
+    MALSIFT
+  </text>
+</svg>
