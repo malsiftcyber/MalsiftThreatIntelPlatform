@@ -11,16 +11,13 @@ scrape_configs:
     static_configs:
       - targets: ['localhost:9090']
 
-  - job_name: 'malsift-backend'
+  - job_name: 'cyber-threat-intel-backend'
     static_configs:
       - targets: ['backend:8000']
     metrics_path: '/metrics'
-    scrape_interval: 5s
+    scrape_interval: 30s
 
-  - job_name: 'malsift-postgres'
+  - job_name: 'cyber-threat-intel-frontend'
     static_configs:
-      - targets: ['postgres:5432']
-
-  - job_name: 'malsift-redis'
-    static_configs:
-      - targets: ['redis:6379']
+      - targets: ['frontend:3000']
+    scrape_interval: 30s

@@ -1,31 +1,98 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from app.api.v1.endpoints import auth, custom_parsers, ml_scoring
+from fastapi.middleware.trustedhost import TrustedHostMiddleware
+from contextlib import asynccontextmanager
+import uvicorn
+from loguru import logger
 
-app = FastAPI(
-    title="Malsift Threat Intelligence Platform API",
-    description="A comprehensive threat intelligence platform API",
-    version="1.0.0"
+from app.core.config import settings
+from app.api.v1.api import api_router
+from app.core.database import engine, Base
+from app.services.metrics import setup_metrics
+
+# Import authentication models to ensure they're created
+from app.models.auth import User, Role, UserSession, MFAAttempt, AzureADConfig
+
+# Import EDR models to ensure they're created
+from app.models.edr.edr_models import (
+    EDRConnection, EDRExtraction, EDRIndicator, EDRAnalysis,
+    LLMConfiguration, ThreatIntelligenceMatch
 )
 
-# Configure CORS
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],  # Configure appropriately for production
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Application lifespan events"""
+    # Startup
+    logger.info("Starting Malsift - Cyber Threat Intelligence Platform")
+    
+    # Create database tables
+    Base.metadata.create_all(bind=engine)
+    
+    # Setup metrics
+    setup_metrics()
+    
+    logger.info("Application startup complete")
+    yield
+    
+    # Shutdown
+    logger.info("Shutting down Malsift - Cyber Threat Intelligence Platform")
 
-# Include routers
-app.include_router(auth.router, prefix="/api/v1/auth", tags=["authentication"])
-app.include_router(custom_parsers.router, prefix="/api/v1/custom-parsers", tags=["custom-parsers"])
-app.include_router(ml_scoring.router, prefix="/api/v1/ml-scoring", tags=["ml-scoring"])
 
-@app.get("/")
-async def root():
-    return {"message": "Malsift Threat Intelligence Platform API"}
+def create_app() -> FastAPI:
+    """Create and configure the FastAPI application"""
+    app = FastAPI(
+        title="Malsift - Cyber Threat Intelligence Platform",
+        description="A comprehensive platform for aggregating and managing cyber threat intelligence from multiple sources",
+        version="1.0.0",
+        docs_url="/docs",
+        redoc_url="/redoc",
+        lifespan=lifespan
+    )
+    
+    # Security middleware
+    app.add_middleware(
+        TrustedHostMiddleware,
+        allowed_hosts=settings.ALLOWED_HOSTS
+    )
+    
+    # CORS middleware
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=settings.ALLOWED_ORIGINS,
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+    
+    # Include API routes
+    app.include_router(api_router, prefix="/api/v1")
+    
+    # Health check endpoint
+    @app.get("/health")
+    async def health_check():
+        return {"status": "healthy", "service": "malsift"}
+    
+    # Root endpoint
+    @app.get("/")
+    async def root():
+        return {
+            "message": "Malsift - Cyber Threat Intelligence Platform API",
+            "version": "1.0.0",
+            "docs": "/docs",
+            "health": "/health"
+        }
+    
+    return app
 
-@app.get("/health")
-async def health_check():
-    return {"status": "healthy"}
+
+app = create_app()
+
+
+if __name__ == "__main__":
+    uvicorn.run(
+        "app.main:app",
+        host="0.0.0.0",
+        port=8000,
+        reload=True,
+        log_level="info"
+    )
